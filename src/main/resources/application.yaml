@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: my-spring-boot-app2-security
+
+  security:
+    user:
+      name: user
+      password: passer
