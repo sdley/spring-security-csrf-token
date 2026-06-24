@@ -2,6 +2,7 @@ package sn.sdley.my_spring_boot_app2_security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,9 +26,11 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/", true)
                         .permitAll()
                 )
+                .httpBasic(Customizer.withDefaults())
                 .logout(customizer -> customizer
                         .logoutRequestMatcher(PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/logout"))
-                        .logoutSuccessUrl("/login")
+                        .logoutSuccessHandler((request, response, authentication)
+                                -> response.sendRedirect("/login"))
                         .permitAll()
                 );
         return http.build();
