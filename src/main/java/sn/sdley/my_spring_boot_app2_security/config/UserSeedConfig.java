@@ -14,7 +14,7 @@ public class UserSeedConfig {
     CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             seedUser(userRepository, passwordEncoder, "sdley", "passer");
-            seedUser(userRepository, passwordEncoder, "user2", "password2");
+            seedUser(userRepository, passwordEncoder, "user", "password");
         };
     }
 
