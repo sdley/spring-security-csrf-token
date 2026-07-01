@@ -2,7 +2,17 @@ spring:
   application:
     name: my-spring-boot-app2-security
 
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/security_lab}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
   security:
     user:
-      name: user
-      password: passer
+      name: ignored-when-db-auth-is-enabled
+      password: ignored-when-db-auth-is-enabled

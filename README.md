@@ -21,6 +21,9 @@ This app gives you a minimal API where that behavior is easy to test.
 - Spring Boot `4.1.0`
 - Spring Security (default config)
 - Spring MVC
+- Spring Data JPA
+- PostgreSQL
+- Docker / Docker Compose
 - Lombok
 - Maven Wrapper (`./mvnw`)
 
@@ -28,7 +31,7 @@ This app gives you a minimal API where that behavior is easy to test.
 
 No custom `SecurityFilterChain` is defined, so Spring Security defaults apply.
 
-Configured demo credentials (from `application.yaml`):
+Configured demo credentials (seeded in PostgreSQL at startup):
 - Username: `user`
 - Password: `passer`
 
@@ -41,13 +44,29 @@ Configured demo credentials (from `application.yaml`):
 | `POST` | `/students` | Add a student (in-memory) | Yes |
 | `GET` | `/csrf-token` | Returns current CSRF token details | No (used to fetch token) |
 
-> Data is stored in memory (`ArrayList`) and resets on restart.
+> Student data is currently stored in memory (`ArrayList`) and resets on restart.
+
+---
+
+## Start PostgreSQL with Docker
+
+```bash
+docker compose up -d
+```
+
+Database defaults from `docker-compose.yml`:
+- Host: `localhost`
+- Port: `5432`
+- Database: `security_lab`
+- Username: `postgres`
+- Password: `postgres`
 
 ---
 
 ## Quick start
 
 ```bash
+docker compose up -d
 ./mvnw spring-boot:run
 ```
 
@@ -135,4 +154,3 @@ Current tests include a basic context-load check.
 ---
 
 If your goal is learning, this is a great baseline: small enough to understand quickly, realistic enough to demonstrate how CSRF protects data-changing endpoints.
-
