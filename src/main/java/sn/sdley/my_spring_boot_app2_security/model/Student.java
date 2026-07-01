@@ -1,4 +1,4 @@
-package sn.sdley.my_spring_boot_app2_security;
+package sn.sdley.my_spring_boot_app2_security.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

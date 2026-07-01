@@ -1,4 +1,4 @@
-package sn.sdley.my_spring_boot_app2_security;
+package sn.sdley.my_spring_boot_app2_security.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
