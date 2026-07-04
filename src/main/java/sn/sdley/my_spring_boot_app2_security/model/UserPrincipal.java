@@ -1,5 +1,6 @@
 package sn.sdley.my_spring_boot_app2_security.model;
 
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +18,7 @@ public class UserPrincipal implements UserDetails {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public @NullMarked Collection<? extends GrantedAuthority> getAuthorities() {
         // Let's return static values for now
         return Collections.singleton(() -> "ROLE_USER");
     }
@@ -28,7 +29,7 @@ public class UserPrincipal implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
+    public @NullMarked String getUsername() {
         return user.getUsername();
     }
 
