@@ -1,47 +1,59 @@
 package sn.sdley.my_spring_boot_app2_security.service;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import sn.sdley.my_spring_boot_app2_security.model.User;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class JWTService {
 
-    private final String secretKey;
+    private final SecretKey secretKey;
+    private final long expirationMs;
 
-    Map<String, Object>  claims = new HashMap<>();
-
-    public JWTService() {
-        try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sk = keyGenerator.generateKey();
-            this.secretKey = java.util.Base64.getEncoder().encodeToString(sk.getEncoded());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to generate secret key for JWT", e);
-        }
+    public JWTService(@Value("${app.jwt.secret}") String secret,
+                      @Value("${app.jwt.expiration-ms}") long expirationMs) {
+        this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        this.expirationMs = expirationMs;
     }
 
     public String generateToken(User user) {
+        return generateToken(user.getUsername());
+    }
+
+    public String generateToken(String username) {
         return Jwts.builder()
-                .claims(claims)
-                .subject(user.getUsername())
+                .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // Token valid for 10 hours
-                .signWith(getKey())
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .signWith(secretKey)
                 .compact();
     }
 
-    private Key getKey() {
-        return new javax.crypto.spec.SecretKeySpec(java.util.Base64.getDecoder().decode(secretKey), "HmacSHA256");
+    public String extractUsername(String token) {
+        return extractClaims(token).getPayload().getSubject();
     }
 
-    // Add JWT-related methods here
-    
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        return userDetails.getUsername().equals(extractUsername(token)) && !isTokenExpired(token);
+    }
+
+    public boolean isTokenExpired(String token) {
+        return extractClaims(token).getPayload().getExpiration().before(new Date());
+    }
+
+    private Jws<Claims> extractClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token);
+    }
 }

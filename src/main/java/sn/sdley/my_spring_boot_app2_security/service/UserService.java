@@ -1,6 +1,5 @@
 package sn.sdley.my_spring_boot_app2_security.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,21 +31,10 @@ public class UserService {
         return userRepository.save(user);
     }
 
-
-//    public User verify(User user) {
-//        User existingUser = userRepository.findByUsername(user.getUsername());
-//        if (existingUser != null && passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
-//            return existingUser;
-//        }
-//        return null;
-//    }
-
     public String verify(User user) {
         Authentication authentication = authenticationManager.authenticate(
                 new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
                         user.getUsername(), user.getPassword()));
-        if (authentication.isAuthenticated())
-            return jwtService.generateToken(user);
-        return "Authentication failed";
+        return jwtService.generateToken(authentication.getName());
     }
 }

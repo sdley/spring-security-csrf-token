@@ -16,3 +16,8 @@ spring:
     user:
       name: ignored-when-db-auth-is-enabled
       password: ignored-when-db-auth-is-enabled
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:c3ByaW5nLXNlY3VyaXR5LWxvY2FsLWRldi1zZWNyZXQtMzItYnl0ZXMhIQ==}
+    expiration-ms: ${APP_JWT_EXPIRATION_MS:36000000}
