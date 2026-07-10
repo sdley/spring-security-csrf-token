@@ -1,156 +1,87 @@
-# Spring Security CSRF Lab (Modify Data Safely)
+# Spring Security JWT Demo
 
-A focused Spring Boot project to **experiment with CSRF protection on state-changing requests** (`POST`, `PUT`, `DELETE`).
+A small Spring Boot app showing **JWT-based authentication and token validation** with Spring Security.
 
-This repository is intentionally small so you can clearly observe:
-- what happens when a CSRF token is missing,
-- how to fetch a token,
-- how to send it correctly when modifying data.
+## What it does
 
-## Why this project exists
-
-In Spring Security, CSRF protection is enabled by default for browser-style sessions. That means:
-- safe requests like `GET` usually work without a CSRF token,
-- unsafe requests like `POST` are rejected unless a valid token is present.
-
-This app gives you a minimal API where that behavior is easy to test.
+- Users can register with `POST /register`
+- Users can authenticate with `POST /authenticate`
+- The app returns a signed JWT on successful login
+- Protected endpoints accept `Authorization: Bearer <token>`
+- The JWT is validated on each request before access is granted
 
 ## Tech stack
 
 - Java `25`
 - Spring Boot `4.1.0`
-- Spring Security (default config)
+- Spring Security
 - Spring MVC
 - Spring Data JPA
 - PostgreSQL
-- Docker / Docker Compose
-- Lombok
+- JWT (`jjwt`)
 - Maven Wrapper (`./mvnw`)
 
-## Current auth and security setup
+## Authentication flow
 
-No custom `SecurityFilterChain` is defined, so Spring Security defaults apply.
-
-Configured demo credentials (seeded in PostgreSQL at startup):
-- Username: `user`
-- Password: `passer`
-
-## API surface
-
-| Method | Path | Description | CSRF required |
-|---|---|---|---|
-| `GET` | `/` | Request/session debug info | No |
-| `GET` | `/students` | List all students (in-memory) | No |
-| `POST` | `/students` | Add a student (in-memory) | Yes |
-| `GET` | `/csrf-token` | Returns current CSRF token details | No (used to fetch token) |
-
-> Student data is currently stored in memory (`ArrayList`) and resets on restart.
-
----
-
-## Start PostgreSQL with Docker
+1. Register a user:
 
 ```bash
-docker compose up -d
+curl -X POST http://localhost:8080/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret"}'
 ```
 
-Database defaults from `docker-compose.yml`:
-- Host: `localhost`
-- Port: `5432`
-- Database: `security_lab`
-- Username: `postgres`
-- Password: `postgres`
+2. Authenticate and receive a token:
 
----
+```bash
+curl -X POST http://localhost:8080/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret"}'
+```
 
-## Quick start
+3. Use the token to access protected resources:
+
+```bash
+curl http://localhost:8080/students \
+  -H "Authorization: Bearer <PASTE_TOKEN_HERE>"
+```
+
+## Default security behavior
+
+- `/register`, `/login`, `/authenticate`, and `/error` are public
+- All other routes require authentication
+- Basic form login is still available at `/login`
+- JWT validation runs before protected requests are processed
+
+## Demo data
+
+The app seeds example users at startup:
+
+- Username: `sdley`
+- Password: `passer`
+- Username: `user`
+- Password: `password`
+
+## Run the app
 
 ```bash
 docker compose up -d
 ./mvnw spring-boot:run
 ```
 
-App starts on: `http://localhost:8080`
+App URL: `http://localhost:8080`
 
-## CSRF experiment flow (copy/paste)
-
-### 1) Read data (works without token)
-
-```bash
-curl -u user:passer http://localhost:8080/students
-```
-
-### 2) Try modifying data without token (should fail)
-
-```bash
-curl -i -u user:passer \
-  -X POST http://localhost:8080/students \
-  -H "Content-Type: application/json" \
-  -d '{"id":4,"firstName":"Alice","lastName":"Brown"}'
-```
-
-Expected: `403 Forbidden`
-
-### 3) Fetch token and keep session cookie
-
-```bash
-curl -u user:passer -c cookies.txt http://localhost:8080/csrf-token
-```
-
-Sample response shape:
-
-```json
-{
-  "headerName": "X-CSRF-TOKEN",
-  "parameterName": "_csrf",
-  "token": "..."
-}
-```
-
-Copy the `token` value.
-
-### 4) Retry POST with token + same session cookie
-
-```bash
-curl -i -u user:passer -b cookies.txt \
-  -X POST http://localhost:8080/students \
-  -H "Content-Type: application/json" \
-  -H "X-CSRF-TOKEN: <PASTE_TOKEN_HERE>" \
-  -d '{"id":4,"firstName":"Alice","lastName":"Brown"}'
-```
-
-Expected: success response with the added student object.
-
-### 5) Verify state changed
-
-```bash
-curl -u user:passer http://localhost:8080/students
-```
-
----
-
-## Run tests
+## Test
 
 ```bash
 ./mvnw test
 ```
 
-Current tests include a basic context-load check.
+## Configuration
 
-## What to try next
+JWT settings are configurable through environment variables:
 
-1. Add `PUT /students/{id}` and `DELETE /students/{id}` and verify CSRF behavior.
-2. Add MockMvc security tests that assert `403` without token and `200` with token.
-3. Introduce a custom `SecurityFilterChain` and compare behavior (e.g., disable CSRF for non-browser APIs).
-4. Add a tiny HTML form page to observe token handling in browser form posts.
+- `APP_JWT_SECRET`
+- `APP_JWT_EXPIRATION_MS`
 
-## Project structure
-
-- `src/main/java/sn/sdley/my_spring_boot_app2_security/HomeController.java`
-- `src/main/java/sn/sdley/my_spring_boot_app2_security/StudentController.java`
-- `src/main/java/sn/sdley/my_spring_boot_app2_security/Student.java`
-- `src/main/resources/application.yaml`
-
----
-
-If your goal is learning, this is a great baseline: small enough to understand quickly, realistic enough to demonstrate how CSRF protects data-changing endpoints.
+If unset, local defaults are used.
